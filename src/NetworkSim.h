@@ -8,6 +8,9 @@
 
 #include <mpi/mpi.h>
 
+#include "ISystemFunction.h"
+#include "LmsFilter.h"
+
 class NetworkSim
 {
 public:
@@ -17,12 +20,18 @@ public:
         ~Node();
 
         int getRank();
-        void adapt();
-        void exchange();
-        void combine();
+        void adaptThenCombine();
 
         void sendDataToNeighbor(int rank);
         void receiveDataFromNeighbors();
+
+        // return data vector received from source
+        std::vector<double> receiveDataFromNeighbor(int* source);
+
+        void set(const ISystemFunction::Input&  input);
+        void set(const ISystemFunction::Output& output);
+
+        void dump();
 
         friend NetworkSim;
     private:
@@ -33,6 +42,14 @@ public:
         int m_rank;
         int m_neigborsCount;
         int* m_neighborsRanks;
+
+        LmsFilter m_lmsFilter;
+        ISystemFunction::Input m_u;
+        ISystemFunction::Output m_d;
+
+        std::vector<double> m_estimatedWeights;
+        std::vector<double> m_localWeights;
+
     };
 
     ~NetworkSim();
@@ -41,6 +58,7 @@ public:
     Node* getNode();
 
     int getSize();
+
 
 private:
     NetworkSim();

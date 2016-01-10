@@ -3,6 +3,8 @@ RM := rm -rf
 
 CPP_SRCS += \
 ../src/NetworkSim.cpp \
+../src/LinearFunction.cpp \
+../src/LmsFilter.cpp \
 ./mainMpi.cpp
 
 

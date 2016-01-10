@@ -2,33 +2,54 @@
 #ifndef LMSFILTER_H_
 #define LMSFILTER_H_
 
+#include "ISystemFunction.h"
+
 #include <vector>
+#include <iostream>
 
-class LmsFilter {
+
+class LmsFilter
+{
 public:
-	// sample data is pair between output and desired data
-	typedef std::vector<std::pair<double, double> > SampleData;
 
+	typedef std::vector<double> WeightVector;
 	/**
 	 * Creates LmsFilter.
 	 * @param Order - order of filter (number of weights)
 	 */
 	LmsFilter(int order);
 
+	double adapt(const ISystemFunction::Input&  input,
+			     const ISystemFunction::Output& output);
 
-	double adaptFor(SampleData );
+	/**
+	 * @param input  - system input
+	 * @param output - system output
+	 * @param weight - filter weight to be updated
+	 * @return squared error
+	 */
+	static double Adapt(const ISystemFunction::Input&  input,
+		     	 	 	const ISystemFunction::Output& output,
+		     	 	 	WeightVector& weights,
+		     	 	 	double gradientStep = 0.001);
 
 	/**
 	 * Evaluate data and return a value
 	 * @param	input - data to be interpreted
 	 * @return 	value - result of filter
 	 */
-	double eval(double input);
+	double eval(const ISystemFunction::Input&  input);
+
+	double getError();
+
+	const std::vector<double>& getWeights();
 
 private:
 	int						m_filterOrder;
 	double					m_stepSize;
 	std::vector<double>		m_weights;
+	double 					m_error;
 };
 
+std::ostream& operator<<(std::ostream& os, std::vector<double> data);
 #endif /* LMSFILTER_H_ */

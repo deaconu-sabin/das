@@ -4,6 +4,7 @@
  */
 
 #include "NetworkSim.h"
+#include <cassert>
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Define NetworkSim::Node
@@ -13,7 +14,12 @@ NetworkSim::Node::Node(MPI::Graphcomm& graphComm):
 		m_GraphComm(graphComm),
 		m_rank(-1),
 		m_neigborsCount(0),
-		m_neighborsRanks(NULL)
+		m_neighborsRanks(NULL),
+		m_lmsFilter(1),
+		m_u(0),
+		m_d(0),
+		m_estimatedWeights(),
+		m_localWeights()
 {
 	m_rank = m_GraphComm.Get_rank();
 
@@ -22,11 +28,17 @@ NetworkSim::Node::Node(MPI::Graphcomm& graphComm):
 	m_neighborsRanks = new int[m_neigborsCount];
 	m_GraphComm.Get_neighbors(m_GraphComm.Get_rank(), m_neigborsCount, m_neighborsRanks);
 
-	std::cout << "COMM_RANK "    << MPI::COMM_WORLD.Get_rank()
+	m_estimatedWeights = m_lmsFilter.getWeights();
+	m_localWeights = m_estimatedWeights;
+
+	std::cout << "COMM_RANK " << MPI::COMM_WORLD.Get_rank()
 		<< "; Topology " << m_GraphComm.Get_topology()
 		<< "; GRAPH_RANK " << m_rank
 		<< "; NEIGHBORS COUNT " << m_neigborsCount
-		<< "; NEIGHBORS: " <<  m_neighborsRanks[0] << m_neighborsRanks[1] << m_neighborsRanks[2] << m_neighborsRanks[3]
+		<< "; NEIGH[0] " <<  m_neighborsRanks[0]
+		<< "; NEIGH[1] " <<  m_neighborsRanks[1]
+		<< "; NEIGH[2] " <<  m_neighborsRanks[2]
+		//<< "; NEIGH[3] " <<  m_neighborsRanks[3]
 		<< std::endl;
 }
 
@@ -35,58 +47,107 @@ NetworkSim::Node::~Node()
 	delete [] m_neighborsRanks;
 }
 
-
 int NetworkSim::Node::getRank()
 {
 	return m_rank;
 }
-void NetworkSim::Node::adapt()
+
+void NetworkSim::Node::adaptThenCombine()
 {
+	const double NEIGH_DATA_COEFFICIENT =0.0;
+	const double NEIGH_ESTIMATED_WEIGHT_COEFFICIENT = 1.0/(m_neigborsCount+1);
 
+	// adapt local filter
+	//m_lmsFilter.adapt(m_u, m_d);
+
+	m_localWeights = m_estimatedWeights;
+//	std::cout << m_rank
+//			  << " ATC local W = "
+//			  << m_localWeights
+//			  <<std::endl;
+	LmsFilter::Adapt(m_u, m_d, m_localWeights);
+
+	m_estimatedWeights[0] = NEIGH_ESTIMATED_WEIGHT_COEFFICIENT *
+			                m_localWeights[0];
+	for(unsigned i = 0; i < m_neigborsCount; ++i)
+	{
+		int neighRank = -1;
+		std::vector<double> neighWeights = receiveDataFromNeighbor(&neighRank);
+		assert(m_estimatedWeights.size() == neighWeights.size());
+
+		m_estimatedWeights[0] += NEIGH_ESTIMATED_WEIGHT_COEFFICIENT *
+				                neighWeights[0];
+	}
+	std::cout << m_rank
+			  << " ATC estimated W = "
+			  << m_estimatedWeights
+			  <<std::endl;
 }
-void NetworkSim::Node::exchange()
-{
 
-}
-void NetworkSim::Node::combine()
-{
-
-}
-
-void NetworkSim::Node::sendDataToNeighbor(int rank)
+void NetworkSim::Node::sendDataToNeighbor(int destination)
 {
 	double buffer[100] = {0};
-	{
-		buffer[0] = m_rank;
+	std::vector<double> weightsToSend = m_lmsFilter.getWeights();
 		std::cout << m_rank
-			<< " send to "
-			<< rank
+			<< " --> "
+			<< destination
+			<< " Data: "
+			<< m_localWeights
 			<< std::endl;
-		m_GraphComm.Send(buffer, 1, MPI::DOUBLE, rank, /*tag*/ 100);
-	}
+	m_GraphComm.Send(&(m_localWeights[0]), m_localWeights.size(), MPI::DOUBLE, destination, /*tag*/ 100);
 }
+
 void NetworkSim::Node::receiveDataFromNeighbors()
 {
 	for(int i = 0; i< m_neigborsCount; i++)
 	{
-		double buffer[100];
-		if(m_neighborsRanks[i] == m_rank)
-		{
-		   //TODO:LOCAL
-			buffer[0]=255.0;
-		}
-		else
-		{
-			MPI::Status status;
-			m_GraphComm.Recv(buffer, 1, MPI::DOUBLE, MPI::ANY_SOURCE, /*tag*/ 100,status);
-			std::cout << m_rank
-				<< " recv from "
-				<< status.Get_source()
-				<< " data: "
-				<< buffer[0]
-				<< std::endl;
-		}
+		int source = -1;
+		receiveDataFromNeighbor(&source);
 	}
+}
+
+std::vector<double> NetworkSim::Node::receiveDataFromNeighbor(int* source)
+{
+	static std::vector<double> receivedWeights;
+
+	MPI::Status status;
+	double buffer[100];
+	m_GraphComm.Recv(buffer, 100,
+			         MPI::DOUBLE,
+			         MPI::ANY_SOURCE,
+			         /*tag*/ 100,
+			         status);
+
+	*source = status.Get_source();
+	int count = status.Get_count(MPI::DOUBLE);
+	receivedWeights = std::vector<double>(buffer, buffer+count);
+
+	std::cout << m_rank
+		<< " <-- "
+		<< status.Get_source()
+		<< " Data: "
+		<< receivedWeights
+		<< std::endl;
+
+	return receivedWeights;
+}
+
+void NetworkSim::Node::set(const ISystemFunction::Input&  input)
+{
+	m_u = input;
+}
+void NetworkSim::Node::set(const ISystemFunction::Output& output)
+{
+	m_d = output;
+}
+
+void NetworkSim::Node::dump()
+{
+	std::cout << "Node[" << m_rank
+		<< "]: U = " << m_u[0]
+		<< "; D = " <<  m_d
+		<< "; Estim_W " <<  m_estimatedWeights[0]
+		<< std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +178,7 @@ void NetworkSim::init()
     m_isValid = true;
     m_pNode = NULL;
 
+    // Predifined topology
     //TODO: read topology from net config
     m_NetworkSize = 4;
     int index[] = {3,6,9,12};
@@ -138,7 +200,8 @@ void NetworkSim::init()
     {
         if (processId == 0)
         {
-            std::cout << "Exit. Not enough nodes! Expected nodes: "<< m_NetworkSize << std::endl;
+            std::cout << "Exit. Not enough nodes! Expected nodes: "
+            		  << m_NetworkSize << std::endl;
         }
         m_isValid = false;
         return;
@@ -146,7 +209,8 @@ void NetworkSim::init()
 
     if (processId >= m_NetworkSize)
     {
-        std::cout << "WARNING!! This node is out of network. NodeRank: "<< processId << std::endl;
+        std::cout << "WARNING!! This node is out of network. NodeRank: "
+        		  << processId << std::endl;
         m_isValid = false;
         return;
     }
@@ -170,4 +234,6 @@ int NetworkSim::getSize()
 {
 	return m_NetworkSize;
 }
+
+
 
