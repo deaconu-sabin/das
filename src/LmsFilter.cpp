@@ -5,43 +5,58 @@
 
 LmsFilter::LmsFilter(int filterOrder):
 	m_filterOrder(filterOrder),
-	m_stepSize(0.001),
+	m_stepSize(0.00001),
 	m_weights(m_filterOrder, 0.0),
 	m_error(99.99)
 {
 }
-
 
 double LmsFilter::adapt(const ISystemFunction::Input&  input,
 	     	 	 	 	const ISystemFunction::Output& output)
 {
 
 	m_error = output - eval(input);
-	double err = m_error* m_error;
-	std::cout << "E = " << err
-			  << "; W = " << m_weights
-			  << "; D = " << 2*m_error*(-input[0])
-			  << "\n";
+	for(unsigned i = 0; i < m_weights.size(); ++i)
+	{
+		double err = m_error* m_error;
+		std::cout << "E = " << err
+				  << "; W = " << m_weights[0]
+				  << "; Deriv = " << 2*m_error*(-input[i])
+				  << "\n";
 
-	m_weights[0] = m_weights[0] + m_stepSize * m_error * input[0];
+		m_weights[i] = m_weights[i] + m_stepSize * m_error * input[i];
+	}
 
-	return m_error;
+	//return squared error
+	return m_error*m_error;
 }
 
 double LmsFilter::Adapt(const ISystemFunction::Input&  input,
-	     	 	 	const ISystemFunction::Output& output,
+	     	 	 	const ISystemFunction::Output& desiredOutput,
 	     	 	 	WeightVector& weights,
 	     	 	 	double gradientStep)
 {
+	assert(weights.size() == input.size());
+
 	WeightVector oldWeight = weights;
-	double error = output - (input[0]*weights[0]);
-	weights[0] = weights[0] + gradientStep * error * input[0];
+
+	double actualOutput = 0.0;
+	for(unsigned i = 0; i<weights.size(); ++i)
+	{
+		actualOutput += weights[i] * input[i];
+	}
+
+	double error = desiredOutput - actualOutput;
+	for(unsigned i = 0; i < weights.size(); ++i)
+	{
+		weights[i] = weights[i] + gradientStep * error * input[i];
+	}
 
 	//squared error
 	error = error*error;
 	std::cout << "Lms:Adapt: err = " << error
-			  << "; oW = " << oldWeight
-			  << " => nW " << weights
+			  << "; oldW = " << oldWeight
+			  << " => newW " << weights
 			  << std::endl;
 
 	return error;
@@ -50,12 +65,19 @@ double LmsFilter::Adapt(const ISystemFunction::Input&  input,
 double LmsFilter::eval(const ISystemFunction::Input&  input)
 {
 	assert(m_weights.size() == input.size());
-	return m_weights[0] * input[0];
+
+	double out = 0.0;
+	for(unsigned i = 0; i<m_weights.size(); ++i)
+	{
+		out += m_weights[i] * input[i];
+	}
+
+	return out;
 }
 
-double LmsFilter::getError()
+double LmsFilter::getOutputError()
 {
-	return m_error;
+	return m_error*m_error;
 }
 
 const std::vector<double>& LmsFilter::getWeights()

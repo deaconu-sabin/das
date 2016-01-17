@@ -29,9 +29,9 @@ public:
 	 * @return squared error
 	 */
 	static double Adapt(const ISystemFunction::Input&  input,
-		     	 	 	const ISystemFunction::Output& output,
+		     	 	 	const ISystemFunction::Output& desiredOutput,
 		     	 	 	WeightVector& weights,
-		     	 	 	double gradientStep = 0.001);
+		     	 	 	double gradientStep = 0.00001);
 
 	/**
 	 * Evaluate data and return a value
@@ -40,7 +40,10 @@ public:
 	 */
 	double eval(const ISystemFunction::Input&  input);
 
-	double getError();
+	/**
+	 * @return squared error
+	 */
+	double getOutputError();
 
 	const std::vector<double>& getWeights();
 

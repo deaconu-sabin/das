@@ -5,24 +5,28 @@
 
 int main (int argc, char** argv)
 {
-	// f(x) = 1.5x + 2;
-	LinearFunction f(2,1);
-	LmsFilter lmsFilter(1);
+	LinearFunction f(2,0.5);
 
-	for (double x = 20; x >= 0.0 ; x-=0.7)
+//	std::vector<double> coefficients;
+//	coefficients.push_back(2);
+//	coefficients.push_back(1);
+//	coefficients.push_back(5);
+//	coefficients.push_back(3);
+//	MultivariateFunction f(coefficients);
+
+	LmsFilter lmsFilter(f.generateInput().size());
+
+	for (unsigned time = 0; (time < 500 && lmsFilter.getOutputError() > 0.0001) ; ++time)
 	{
-		ISystemFunction::Input input(1,x);
-		std::cout<< x << " -> "<< f.evaluate(input)<<"\n";
+		ISystemFunction::Input input(f.generateInput());
+		std::cout<< input << " -> "<< f.evaluate(input)<<"\n";
 
-		double error = lmsFilter.adapt(input, f.evaluate(input));
-		std::cout <<"LMS == > error=" << error
-				  <<"; lmsFilter.eval=" << lmsFilter.eval(input)<<"\n\n";
+		lmsFilter.adapt(input, f.evaluate(input));
+
+		std::cout 	<< time
+					<< "; w = "
+					<< lmsFilter.getWeights()<<"\n\n";
 	}
-
-	//
-	ISystemFunction::Input input(1,10);
-	std::cout <<"LMS == > error=" << lmsFilter.getError()
-			  <<"; eval(10)=" << lmsFilter.eval(input)<<"\n";
 
 	return 0;
 }

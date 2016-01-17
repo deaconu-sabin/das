@@ -11,6 +11,9 @@ public:
 	typedef double 				Output;
 
 	virtual Output evaluate(const Input& input) = 0;
+
+	virtual Input generateInput() = 0;
+
 	virtual ~ISystemFunction(){};
 };
 

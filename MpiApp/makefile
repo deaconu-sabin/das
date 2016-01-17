@@ -5,6 +5,7 @@ CPP_SRCS += \
 ../src/NetworkSim.cpp \
 ../src/LinearFunction.cpp \
 ../src/LmsFilter.cpp \
+../src/NumberGenerator.cpp \
 ./mainMpi.cpp
 
 

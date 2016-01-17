@@ -11,25 +11,28 @@ int main(int argc, char** argv)
 
     if(node != NULL)
     {
-    	ISystemFunction* system = new LinearFunction(2.0, 0.2);
-    	unsigned maxTime = 20;
+    	//ISystemFunction* system = new LinearFunction(2.0, 0.2);
+
+    	std::vector<double> coefficients;
+    	coefficients.push_back(2);
+    	coefficients.push_back(1);
+    	coefficients.push_back(3);
+    	ISystemFunction* system = new MultivariateFunction(coefficients);
+
+    	unsigned maxTime = 100;
     	for(unsigned time = 0; time < maxTime; time++)
     	{
-    		// this is value for regression vector (1 element)
-    		// for this node at this time
-    		double u = (time+0.3) * (node->getRank()+1);
-
     		// we set the pair {d,u}
     		// u - is input
     		// d - is system outcome
-    		ISystemFunction::Input input(1,u);
+    		ISystemFunction::Input input = system->generateInput();
     		node->set(input);
     		node->set(system->evaluate(input));
 
     		std::cout <<"Node["
     				  << node->getRank()
     				  << "] data: u = "
-    				  << input[0]
+    				  << input
     				  << "\td = "
     				  << system->evaluate(input)
     				  <<std::endl;

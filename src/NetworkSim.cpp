@@ -15,7 +15,7 @@ NetworkSim::Node::Node(MPI::Graphcomm& graphComm):
 		m_rank(-1),
 		m_neigborsCount(0),
 		m_neighborsRanks(NULL),
-		m_lmsFilter(1),
+		m_lmsFilter(3),
 		m_u(0),
 		m_d(0),
 		m_estimatedWeights(),
@@ -67,16 +67,22 @@ void NetworkSim::Node::adaptThenCombine()
 //			  <<std::endl;
 	LmsFilter::Adapt(m_u, m_d, m_localWeights);
 
-	m_estimatedWeights[0] = NEIGH_ESTIMATED_WEIGHT_COEFFICIENT *
-			                m_localWeights[0];
-	for(unsigned i = 0; i < m_neigborsCount; ++i)
+	for(unsigned i = 0; i < m_estimatedWeights.size(); ++i)
+	{
+		m_estimatedWeights[i] = NEIGH_ESTIMATED_WEIGHT_COEFFICIENT *
+								m_localWeights[i];
+	}
+	for(unsigned neighIdx = 0; neighIdx < m_neigborsCount; ++neighIdx)
 	{
 		int neighRank = -1;
 		std::vector<double> neighWeights = receiveDataFromNeighbor(&neighRank);
 		assert(m_estimatedWeights.size() == neighWeights.size());
 
-		m_estimatedWeights[0] += NEIGH_ESTIMATED_WEIGHT_COEFFICIENT *
-				                neighWeights[0];
+		for(unsigned i = 0; i < m_estimatedWeights.size(); ++i)
+		{
+			m_estimatedWeights[i] += NEIGH_ESTIMATED_WEIGHT_COEFFICIENT *
+				                	neighWeights[i];
+		}
 	}
 	std::cout << m_rank
 			  << " ATC estimated W = "
@@ -144,9 +150,9 @@ void NetworkSim::Node::set(const ISystemFunction::Output& output)
 void NetworkSim::Node::dump()
 {
 	std::cout << "Node[" << m_rank
-		<< "]: U = " << m_u[0]
+		<< "]: U = " << m_u
 		<< "; D = " <<  m_d
-		<< "; Estim_W " <<  m_estimatedWeights[0]
+		<< "; Estim_W " <<  m_estimatedWeights
 		<< std::endl;
 }
 
