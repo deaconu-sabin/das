@@ -6,15 +6,16 @@ RM := rm -rf
 
 CPP_SRCS += \
 ./src/network/NetworkSim.cpp \
+./src/network/Node.cpp \
 ./src/mainMpi.cpp
 
 EXECUTABLE=$(BUILD_DIR)/das
 
 # All Target
-all: das
+all: libaf  das
 
 # Tool invocations
-das: libaf
+das: 
 	@echo 'Building target: $@'
 	@echo 'Invoking: MPI C++ Linker'
 	$(MPICXX) -I"$(LIBAF_BUILD_DIR)" -o $(EXECUTABLE) $(CPP_SRCS) $(LIBAF_BUILD_DIR)/libaf.a 
@@ -22,9 +23,10 @@ das: libaf
 	@echo ' '
 
 # Other Targets
-clean: libaf.clean
+das.clean:
 	-$(RM) $(EXECUTABLE)
 	-@echo ' '
 
+clean: das.clean libaf.clean
 
 

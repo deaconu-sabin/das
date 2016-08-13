@@ -7,68 +7,45 @@
 #define NETWORKSIM_H_
 
 #include <mpi/mpi.h>
+#include "Node.hpp"
 
-#include <adaptivefilter/ISystemFunction.h>
-#include <adaptivefilter/LmsFilter.h>
 
 class NetworkSim
 {
 public:
-    class Node
-    {
-    public:
-        ~Node();
-
-        int getRank();
-        void adaptThenCombine();
-
-        void sendDataToNeighbor(int rank);
-        void receiveDataFromNeighbors();
-
-        // return data vector received from source
-        std::vector<double> receiveDataFromNeighbor(int* source);
-
-        void set(const ISystemFunction::Input&  input);
-        void set(const ISystemFunction::Output& output);
-
-        void dump();
-
-        friend NetworkSim;
-    private:
-        Node(MPI::Graphcomm& graphComm);
-
-    private:
-        MPI::Graphcomm m_GraphComm;
-        int m_rank;
-        int m_neigborsCount;
-        int* m_neighborsRanks;
-
-        LmsFilter m_lmsFilter;
-        ISystemFunction::Input m_u;
-        ISystemFunction::Output m_d;
-
-        std::vector<double> m_estimatedWeights;
-        std::vector<double> m_localWeights;
-
-    };
-
     ~NetworkSim();
     static NetworkSim& getInstance();
 
+    int getSize() const;
+    int getProcessId() const;
+    int getRank() const;
+    int getTopology() const;
+
+    bool recvData(std::vector<double>& receivedData);
+    bool recvDataFrom(std::vector<double>& receivedData, int source);
+
+    bool sendData(const std::vector<double>& inData);
+    bool sendDataTo(const std::vector<double>& inData, int dest);
+
+
+    void execute();
+
+    bool loadFromCfgFile();
     Node* getNode();
-
-    int getSize();
-
-
+    void init();
+    void dump() const;
 private:
     NetworkSim();
-    void init();
 
 private:
-    int processId;
-    bool m_isValid;
-    int m_NetworkSize;
     Node* m_pNode;
+    MPI::Intracomm m_intraComm;
+
 };
+
+inline NetworkSim& NetSim()
+{
+    return NetworkSim::getInstance();
+}
 
 #endif /* NETWORKSIM_H_ */
