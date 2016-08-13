@@ -8,8 +8,8 @@
 
 #include <mpi/mpi.h>
 
-#include "ISystemFunction.h"
-#include "LmsFilter.h"
+#include <adaptivefilter/ISystemFunction.h>
+#include <adaptivefilter/LmsFilter.h>
 
 class NetworkSim
 {

@@ -11,7 +11,6 @@ int main (int argc, char** argv)
 //	coefficients.push_back(2);
 //	coefficients.push_back(1);
 //	coefficients.push_back(5);
-//	coefficients.push_back(3);
 //	MultivariateFunction f(coefficients);
 
 	LmsFilter lmsFilter(f.generateInput().size());

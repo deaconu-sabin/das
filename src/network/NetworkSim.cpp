@@ -65,7 +65,7 @@ void NetworkSim::Node::adaptThenCombine()
 //			  << " ATC local W = "
 //			  << m_localWeights
 //			  <<std::endl;
-	LmsFilter::Adapt(m_u, m_d, m_localWeights);
+	double error = LmsFilter::Adapt(m_u, m_d, m_localWeights);
 
 	for(unsigned i = 0; i < m_estimatedWeights.size(); ++i)
 	{
@@ -86,7 +86,9 @@ void NetworkSim::Node::adaptThenCombine()
 	}
 	std::cout << m_rank
 			  << " ATC estimated W = "
-			  << m_estimatedWeights
+			  << std::fixed << m_estimatedWeights
+			  << " Err = "
+			  << std::fixed << error
 			  <<std::endl;
 }
 
@@ -94,12 +96,12 @@ void NetworkSim::Node::sendDataToNeighbor(int destination)
 {
 	double buffer[100] = {0};
 	std::vector<double> weightsToSend = m_lmsFilter.getWeights();
-		std::cout << m_rank
-			<< " --> "
-			<< destination
-			<< " Data: "
-			<< m_localWeights
-			<< std::endl;
+//		std::cout << m_rank
+//			<< " --> "
+//			<< destination
+//			<< " Data: "
+//			<< m_localWeights
+//			<< std::endl;
 	m_GraphComm.Send(&(m_localWeights[0]), m_localWeights.size(), MPI::DOUBLE, destination, /*tag*/ 100);
 }
 
@@ -128,12 +130,12 @@ std::vector<double> NetworkSim::Node::receiveDataFromNeighbor(int* source)
 	int count = status.Get_count(MPI::DOUBLE);
 	receivedWeights = std::vector<double>(buffer, buffer+count);
 
-	std::cout << m_rank
-		<< " <-- "
-		<< status.Get_source()
-		<< " Data: "
-		<< receivedWeights
-		<< std::endl;
+//	std::cout << m_rank
+//		<< " <-- "
+//		<< status.Get_source()
+//		<< " Data: "
+//		<< receivedWeights
+//		<< std::endl;
 
 	return receivedWeights;
 }
@@ -168,6 +170,7 @@ NetworkSim& NetworkSim::getInstance()
 
 NetworkSim::NetworkSim()
 {
+    MPI::Init();      /* starts MPI */
     init();
 }
 
@@ -193,7 +196,7 @@ void NetworkSim::init()
             0,1,3,
             0,1,2};
 
-    MPI::Init ();      /* starts MPI */
+
     processId = MPI::COMM_WORLD.Get_rank();   /* get current process id */
     int size = MPI::COMM_WORLD.Get_size(); /* get number of processes */
 
@@ -240,6 +243,5 @@ int NetworkSim::getSize()
 {
 	return m_NetworkSize;
 }
-
 
 

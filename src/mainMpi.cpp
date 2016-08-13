@@ -1,8 +1,8 @@
 
 
 #include <iostream>
-#include "NetworkSim.h"
-#include "LinearFunction.h"
+#include "network/NetworkSim.h"
+#include <adaptivefilter/LinearFunction.h>
 
 int main(int argc, char** argv)
 {
@@ -16,10 +16,10 @@ int main(int argc, char** argv)
     	std::vector<double> coefficients;
     	coefficients.push_back(2);
     	coefficients.push_back(1);
-    	coefficients.push_back(3);
+    	coefficients.push_back(5);
     	ISystemFunction* system = new MultivariateFunction(coefficients);
 
-    	unsigned maxTime = 100;
+    	unsigned maxTime = 500;
     	for(unsigned time = 0; time < maxTime; time++)
     	{
     		// we set the pair {d,u}

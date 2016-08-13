@@ -54,10 +54,10 @@ double LmsFilter::Adapt(const ISystemFunction::Input&  input,
 
 	//squared error
 	error = error*error;
-	std::cout << "Lms:Adapt: err = " << error
-			  << "; oldW = " << oldWeight
-			  << " => newW " << weights
-			  << std::endl;
+//	std::cout << "Lms:Adapt: err = " << error
+//			  << "; oldW = " << oldWeight
+//			  << " => newW " << weights
+//			  << std::endl;
 
 	return error;
 }
