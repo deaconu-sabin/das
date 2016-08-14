@@ -5,8 +5,6 @@
 #include "ISystemFunction.h"
 
 #include <vector>
-#include <iostream>
-
 
 class LmsFilter
 {
@@ -54,5 +52,4 @@ private:
 	double 					m_error;
 };
 
-std::ostream& operator<<(std::ostream& os, std::vector<double> data);
 #endif /* LMSFILTER_H_ */

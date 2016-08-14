@@ -5,8 +5,11 @@ RM := rm -rf
 -include src/libAdaptiveFilter/makefile
 
 CPP_SRCS += \
+./src/network/DistributedGraphLms.cpp \
 ./src/network/NetworkSim.cpp \
-./src/network/Node.cpp \
+./src/network/NetworkCfg.cpp \
+./src/network/LmsNode.cpp \
+./src/Logging.cpp \
 ./src/mainMpi.cpp
 
 EXECUTABLE=$(BUILD_DIR)/das

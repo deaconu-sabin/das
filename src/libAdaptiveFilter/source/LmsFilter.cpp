@@ -1,6 +1,5 @@
 
 #include "LmsFilter.h"
-#include <iostream>
 #include <cassert>
 
 LmsFilter::LmsFilter(int filterOrder):
@@ -18,11 +17,11 @@ double LmsFilter::adapt(const ISystemFunction::Input&  input,
 	m_error = output - eval(input);
 	for(unsigned i = 0; i < m_weights.size(); ++i)
 	{
-		double err = m_error* m_error;
-		std::cout << "E = " << err
-				  << "; W = " << m_weights[0]
-				  << "; Deriv = " << 2*m_error*(-input[i])
-				  << "\n";
+//		double err = m_error* m_error;
+//		std::cout << "E = " << err
+//				  << "; W = " << m_weights[0]
+//				  << "; Deriv = " << 2*m_error*(-input[i])
+//				  << "\n";
 
 		m_weights[i] = m_weights[i] + m_stepSize * m_error * input[i];
 	}
@@ -85,13 +84,3 @@ const std::vector<double>& LmsFilter::getWeights()
 	return m_weights;
 }
 
-std::ostream& operator<<(std::ostream& os, std::vector<double> data)
-{
-	os << "[ ";
-	for (unsigned int i = 0; i < data.size(); ++i)
-	{
-		os << data[i] << " ";
-	}
-	os << "]";
-	return os;
-}

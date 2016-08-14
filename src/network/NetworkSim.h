@@ -7,12 +7,24 @@
 #define NETWORKSIM_H_
 
 #include <mpi/mpi.h>
-#include "Node.hpp"
-
+#include "NetworkCfg.hpp"
 
 class NetworkSim
 {
 public:
+    static const int INVALID_VALUE;
+
+    class IDistributedAlgorithm
+    {
+        public:
+            IDistributedAlgorithm(){};
+            virtual ~IDistributedAlgorithm(){}
+            virtual void setInitialData() = 0;
+            virtual void readInputData() = 0;
+            virtual void processData() = 0;
+            virtual void writeOutputData() = 0;
+    };
+
     ~NetworkSim();
     static NetworkSim& getInstance();
 
@@ -27,19 +39,21 @@ public:
     bool sendData(const std::vector<double>& inData);
     bool sendDataTo(const std::vector<double>& inData, int dest);
 
-
-    void execute();
-
-    bool loadFromCfgFile();
-    Node* getNode();
-    void init();
+    IDistributedAlgorithm* getAlgorithm() const;
+    void setCfgFile(const char* file);
     void dump() const;
+    bool init();
+
 private:
     NetworkSim();
+    bool createTopology(int topology);
 
 private:
-    Node* m_pNode;
+    IDistributedAlgorithm* m_algorithm;
     MPI::Intracomm m_intraComm;
+    NetworkCfg m_netCfg;
+    //! m_myNeighborsRank : also can be the node itself
+    std::vector<int> m_myNeighborsRank;
 
 };
 
