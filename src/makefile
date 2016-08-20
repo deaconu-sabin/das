@@ -7,15 +7,12 @@
 MAIN_APP_CPP= \
 $(PROJECT_DIR)/src/mainMpi.cpp
 
-TARGET=mainApp
-
 # Tool invocations
-mainApp: libaf libdas
+mainApp: libdas.so
 	@echo 'Building target: $@'
-	@echo 'Invoking: GCC C++ Linker'
 	mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXX_FLAGS) $(MAIN_APP_CPP) -o $(BUILD_DIR)/$(TARGET) -ldas
-	cp $(PROJECT_DIR)/net.cfg $(BUILD_DIR)/
+	@echo 'Invoking: GCC C++ Linker'
+	$(CXX) $(CXX_FLAGS) $(MAIN_APP_CPP) -o $(BUILD_DIR)/$@ -ldas
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -17,10 +17,11 @@ class IAlgorithm
 {
     public:
         virtual ~IAlgorithm(){}
-        virtual void setInitialData() = 0;
+        virtual bool setInitialData() = 0;
         virtual bool readInputData() = 0;
-        virtual void processData() = 0;
-        virtual void writeOutputData() = 0;
+        virtual bool processData() = 0;
+        virtual bool writeOutputData() = 0;
+        virtual bool isFinished() = 0;
 };
 
 } /* namespace das */

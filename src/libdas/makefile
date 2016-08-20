@@ -9,15 +9,13 @@ $(LIBDAS_SRC_DIR)/Config.cpp \
 $(LIBDAS_SRC_DIR)/Logging.cpp \
 $(LIBDAS_SRC_DIR)/Network.cpp
 
-TARGET=libdas.so
-
 
 # Tool invocations
-libdas:
+libdas.so:
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
 	mkdir -p $(LIB_DIR)
-	$(MPICXX) $(CXX_FLAGS) $(SHARED_LIB) $(LIBDAS_CPP) -o $(LIB_DIR)/$(TARGET)
+	$(MPICXX) $(CXX_FLAGS) $(SHARED_LIB) $(LIBDAS_CPP) -o $(LIB_DIR)/$@
 	@echo 'Finished building target: $@'
 	@echo ' '
 

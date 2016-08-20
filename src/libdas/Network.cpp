@@ -37,18 +37,9 @@ public:
         : intraComm(MPI::COMM_NULL)
         , neighborsList()
         , config()
-        , log("NetSim")
+        , log("Network")
     {
         MPI::Init();    /* starts MPI */
-
-        std::stringstream fileName;
-        fileName << "NetSim" << getProcessId() << ".log";
-        if(getProcessId() != 0)
-        {
-            log.open(fileName.str());
-        }
-        log.setLevel(Logging::INFO);
-        log.Info() << "START PROCESS "<< getProcessId() << std::endl;
     }
 
     ~NetworkImpl()
@@ -60,11 +51,11 @@ public:
 
     bool init()
     {
-        if (!config.deserialize())
-        {
-            log.Fatal() << "Failed to read configuration\n";
-            return false;
-        }
+        std::stringstream fileName;
+        fileName << config.outputFile << getProcessId() << ".log";
+        log.open(fileName.str());
+        log.setLevel(Logging::INFO);
+        log.Info() << "Initialization of node "<< getProcessId() << std::endl;
 
         if (config.nodesNumber > MPI::COMM_WORLD.Get_size())
         {
@@ -171,7 +162,7 @@ public:
     {
         bool isDataSent = false;
 
-        // TODO: add implementation
+        // TODO: Add sendData() implementation
 
         return isDataSent;
     }
@@ -367,12 +358,16 @@ std::vector<int> Network::GetMyNeighbors() const
     return std::vector<int>();
 }
 
-void Network::LoadConfiguration(const std::string& configFile) const
+bool Network::LoadConfiguration(const std::string& configFile) const
 {
     if(net)
     {
         net->config.setFileName(configFile);
         net->config.deserialize();
+        return net->init();
+    }else
+    {
+        return false;
     }
 }
 
@@ -381,11 +376,15 @@ IAlgorithm* Network::LoadAlgorithm() const
     IAlgorithm* algorithm = NULL;
     if(net)
     {
-        algorithm = NetworkImpl::algorithmLoader.load(net->config.nodeAlgorithm);
+        std::stringstream nodeAlgorithm;
+        nodeAlgorithm << "algorithms/"              // path
+                     << net->config.nodeAlgorithm   // name
+                     << ".algorithm";               // .extension
+        algorithm = NetworkImpl::algorithmLoader.load(nodeAlgorithm.str());
         if(NULL == algorithm)
         {
             net->log.Err() << "Loading failed of"
-                           << net->config.nodeAlgorithm
+                           << nodeAlgorithm.str()
                            << std::endl;
         }
     }

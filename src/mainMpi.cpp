@@ -6,27 +6,50 @@
 
 int main(int argc, char** argv)
 {
-    das::Network::Instance().LogMessage("*****************************\n");
-    das::Network::Instance().LogMessage("          MAIN START         \n");
-    das::Network::Instance().LogMessage("*****************************\n");
+    das::Network& network = das::Network::Instance();
 
     if(argc < 2)
     {
-        das::Network::Instance().LoadConfiguration("net.cfg");
+        network.LoadConfiguration("Network.cfg");
     }else
     {
-        das::Network::Instance().LoadConfiguration(argv[1]);
+        network.LoadConfiguration(argv[1]);
     }
-    das::IAlgorithm* algorithm =
-                        das::Network::Instance().LoadAlgorithm();
+
+    network.LogMessage("*****************************");
+    network.LogMessage("           START             ");
+    network.LogMessage("*****************************");
+
+    das::IAlgorithm* algorithm = network.LoadAlgorithm();
 
     if(algorithm)
     {
-        algorithm->setInitialData();
-        while (algorithm->readInputData())
+        if(algorithm->setInitialData())
         {
-            algorithm->processData();
-            algorithm->writeOutputData();
+            while (algorithm->isFinished() == false)
+            {
+                if(algorithm->readInputData())
+                {
+                    network.LogMessage("Algorithm::readInputData() failed!\n");
+                    break;
+                }
+
+                if(!algorithm->processData())
+                {
+                    network.LogMessage("Algorithm::processData() failed!\n");
+                    break;
+                }
+
+                if(!algorithm->writeOutputData())
+                {
+                    network.LogMessage("Algorithm::writeOutputData() failed!\n");
+                    break;
+                }
+            }
+        }
+        else
+        {
+            network.LogMessage("Algorithm::setInitialData() failed!\n");
         }
     }else
     {
@@ -34,8 +57,8 @@ int main(int argc, char** argv)
                   << das::Network::Instance().GetMyId()<< std::endl;
     }
 
-    das::Network::Instance().LogMessage("*****************************\n");
-    das::Network::Instance().LogMessage("          MAIN END           \n");
-    das::Network::Instance().LogMessage("*****************************\n");
+    das::Network::Instance().LogMessage("*****************************");
+    das::Network::Instance().LogMessage("          MAIN END           ");
+    das::Network::Instance().LogMessage("*****************************");
     return 0;
 }

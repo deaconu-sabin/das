@@ -29,7 +29,7 @@ public:
     int GetSize() const;
     std::vector<int> GetMyNeighbors() const;
 
-    void LoadConfiguration(const std::string& configFile) const;
+    bool LoadConfiguration(const std::string& configFile) const;
     IAlgorithm* LoadAlgorithm() const;
 
     bool RecvData(std::vector<double>& receivedData);

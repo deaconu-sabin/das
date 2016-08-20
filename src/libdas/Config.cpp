@@ -11,16 +11,18 @@
 
 using namespace das;
 
+const size_t STRING_SZ = 32;
+
 Config::Config()
     : nodesNumber(0)
+    , nodeAlgorithm(STRING_SZ, '\0')
+    , outputFile(STRING_SZ, '\0')
     , logLevel(Logging::ERROR)
-    , nodeAlgorithm("default")
     , topologyType(TOPOLOGY_UNDEF)
     , nodeEdges()
-    , log("NetSim", "Config")
-    , m_filename("net.cfg")
+    , m_filename(STRING_SZ, '\0')
 {
-    log.setLevel(Logging::INFO);
+
 }
 void Config::setFileName(const std::string& filename)
 {
@@ -29,23 +31,27 @@ void Config::setFileName(const std::string& filename)
 
 bool Config::deserialize()
 {
+    Logging log("Network", "Configuration");
+
     std::ifstream file;
     file.open(m_filename.c_str(), std::ifstream::in);
 
     if (!file.good())
     {
-        log.Err() << "Config : Cannot open file "
+        log.Err() << "Cannot open file "
                   << m_filename << std::endl;
         return false;
     }
 
     const int BUFFER_SIZE = 256;
     char buffer[BUFFER_SIZE];
-
-    log.Info() << " Read Configuration\n";
-
     char tokenLeft;
     char tokenRight;
+    log.Info() << " Read Configuration\n";
+
+    ////////////////////////////////////////////
+    /// NODE NUMBER
+    /////////////////////////////////////////////
     file.getline(buffer, BUFFER_SIZE);
     file >> tokenLeft;
     file >> nodesNumber;
@@ -55,29 +61,18 @@ bool Config::deserialize()
     if(tokenLeft != '[' || tokenRight != ']')
     {
         file.close();
-        log.Err() << "Config : Reading error! (nodes)\n";
+        log.Err() << "Reading error! (nodes)\n";
         return false;
     }else
     {
         log.Info() << " nodes = " << nodesNumber
                 << std::endl;
     }
-    file.getline(buffer, BUFFER_SIZE);
-    file >> tokenLeft;
-    file >> logLevel;
-    file >> tokenRight;
-    file.getline(buffer, BUFFER_SIZE);
-    if(tokenLeft != '[' || tokenRight != ']')
-    {
-        file.close();
-        log.Err() << "Config : Reading error! (logLevel)\n";
-        return false;
-    }else
-    {
-        log.Info() <<" logLevel = " << logLevel
-                << std::endl;
-    }
 
+
+    ////////////////////////////////////////////
+    /// NODE ALGORITHM
+    /////////////////////////////////////////////
     file.getline(buffer, BUFFER_SIZE);
     file >> tokenLeft;
     file >> nodeAlgorithm;
@@ -87,7 +82,7 @@ bool Config::deserialize()
     if(tokenLeft != '[' || tokenRight != ']')
     {
         file.close();
-        log.Err() << "Config : Reading error! (nodeAlgorithm)\n";
+        log.Err() << "Reading error! (nodeAlgorithm)\n";
         return false;
     }else
     {
@@ -95,6 +90,52 @@ bool Config::deserialize()
                 << std::endl;
     }
 
+
+    ////////////////////////////////////////////
+    /// OUPUT FILE
+    /////////////////////////////////////////////
+    file.getline(buffer, BUFFER_SIZE);
+    file >> tokenLeft;
+    file >> outputFile;
+    file >> tokenRight;
+    file.getline(buffer, BUFFER_SIZE);
+
+    if(tokenLeft != '[' || tokenRight != ']')
+    {
+        file.close();
+        log.Err() << "Reading error! (outputFile)\n";
+        return false;
+    }else
+    {
+        log.Info() <<" outputFile = " << outputFile
+                << std::endl;
+    }
+
+
+    ////////////////////////////////////////////
+    /// LOG LEVEL
+    /////////////////////////////////////////////
+    file.getline(buffer, BUFFER_SIZE);
+    file >> tokenLeft;
+    file >> logLevel;
+    file >> tokenRight;
+    file.getline(buffer, BUFFER_SIZE);
+
+    if(tokenLeft != '[' || tokenRight != ']')
+    {
+        file.close();
+        log.Err() << "Reading error! (logLevel)\n";
+        return false;
+    }else
+    {
+        log.Info() <<" logLevel = " << logLevel
+                << std::endl;
+    }
+
+
+    ////////////////////////////////////////////
+    /// TOPOLOGY TYPE
+    /////////////////////////////////////////////
     file.getline(buffer, BUFFER_SIZE);
     file >> tokenLeft;
     file >> topologyType;
@@ -104,7 +145,7 @@ bool Config::deserialize()
     if(tokenLeft != '[' || tokenRight != ']')
     {
         file.close();
-        log.Err() << "Config : Reading error! (topologyType)\n";
+        log.Err() << "Reading error! (topologyType)\n";
         return false;
     }else
     {
@@ -112,15 +153,21 @@ bool Config::deserialize()
                 << std::endl;
     }
 
+
+    ////////////////////////////////////////////
+    /// ADJACENCY MATRIX
+    /////////////////////////////////////////////
     if(topologyType == Config::TOPOLOGY_GRAPH)
     {
         //read adjacency matrix
         file.getline(buffer, BUFFER_SIZE);
         for(int node = 0; node < nodesNumber; node++)
         {
+            nodeEdges[node].reserve(nodesNumber);
             file >> tokenLeft;
             for(int neighNode = 0; neighNode < nodesNumber; neighNode++)
             {
+                // TODO add neighbor ID instead of bool
                 int edge;
                 file >> edge;
                 nodeEdges[node].push_back(edge);
@@ -129,7 +176,7 @@ bool Config::deserialize()
             if(tokenLeft != '[' || tokenRight != ']')
             {
                 file.close();
-                log.Err() << "Config : Reading error! Matrix line "
+                log.Err() << "Reading error! Matrix line "
                         << node << std::endl;
                 return false;
             }else

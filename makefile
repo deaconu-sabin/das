@@ -8,12 +8,14 @@ RM := rm -rf
 
 # All Target
 all: mainApp
+	cp -r $(PROJECT_SRC_DIR)/include     $(BUILD_DIR)/
+	cp -r $(PROJECT_SRC_DIR)/algorithms  $(BUILD_DIR)/
+	cp    $(PROJECT_DIR)/Network.cfg     $(BUILD_DIR)/
+	
 
 # Other Targets
-das.clean:
-	-$(RM) $(BUILD_DIR)
+clean:
+	-$(RM) $(BUILD_DIR)/*
 	-@echo ' '
-
-clean: das.clean libaf.clean
 
 

@@ -33,11 +33,11 @@ class Config
         bool serialize();
 
         int nodesNumber;
-        int logLevel;
         std::string nodeAlgorithm;
+        std::string outputFile;
+        int logLevel;
         int topologyType;
         std::map<int, std::vector<int> > nodeEdges;
-        Logging log;
     private:
         std::string m_filename;
 };
