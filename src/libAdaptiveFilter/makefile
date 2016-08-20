@@ -32,17 +32,11 @@ $(LIBAF_BUILD_OBJ_DIR)/NumberGenerator.o
 # Each subdirectory must supply rules for building sources it contributes
 $(LIBAF_BUILD_OBJ_DIR)/%.o: $(LIBAF_SOURCE_DIR)/%.cpp
 	@echo 'Building file: $<'
+	mkdir -p $(LIBAF_BUILD_OBJ_DIR)
 	@echo 'Invoking: Compiler'
 	$(CXX) $(CXX_FLAGS) -I"$(LIBAF_INCLUDE_DIR)" -c -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
-
-
-# make build directory
-libaf.dir:
-	@echo 'Create build directory'
-	mkdir -p $(LIBAF_BUILD_OBJ_DIR)
-	mkdir -p $(LIBAF_BUILD_INC_DIR)
 
 
 # Tool invocations
@@ -52,6 +46,7 @@ libaf.a: $(OBJS)
 	ar -r  "libaf.a" $(OBJS)
 	mv libaf.a $(LIBAF_BUILD_DIR)/
 	-$(RM) $(LIBAF_BUILD_OBJ_DIR)
+	mkdir -p $(LIBAF_BUILD_INC_DIR)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -66,12 +61,7 @@ libaf.header: $(LIBAF_PUBLIC_H)
 
 #
 # All Target for adaptive filter lib
-libaf: libaf.dir libaf.a libaf.header
+libaf: libaf.a libaf.header
 
-
-# clean Targets
-libaf.clean:
-	-$(RM) $(LIBAF_BUILD_OBJ_DIR) $(LIBAF_BUILD_INC_DIR) $(LIBAF_BUILD_DIR)/libaf.a
-	-@echo ' '
 
 	

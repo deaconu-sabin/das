@@ -1,14 +1,15 @@
 
 -include ../../project.mk
 
+LIBDAS_SRC_DIR=$(PROJECT_DIR)/src/libdas
+
 LIBDAS_CPP= \
-AlgorithmLoader.cpp \
-Config.cpp \
-Logging.cpp \
-Network.cpp
+$(LIBDAS_SRC_DIR)/AlgorithmLoader.cpp \
+$(LIBDAS_SRC_DIR)/Config.cpp \
+$(LIBDAS_SRC_DIR)/Logging.cpp \
+$(LIBDAS_SRC_DIR)/Network.cpp
 
 TARGET=libdas.so
-
 
 
 # Tool invocations
@@ -21,13 +22,3 @@ libdas:
 	@echo ' '
 
 #########################################
-
-all: libdas
-
-# Other Targets
-clean:
-	-$(RM) $(LIB_DIR)/$(TARGET)
-	-@echo ' '
-
-.PHONY: all clean 
-.SECONDARY:

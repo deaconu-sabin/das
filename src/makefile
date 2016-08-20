@@ -1,29 +1,22 @@
 
 -include ../project.mk
+-include ./libAdaptiveFilter/makefile
+-include ./libdas/makefile
 
-EXEDAS_CPP= \
-mainMpi.cpp
 
-TARGET=das
+MAIN_APP_CPP= \
+$(PROJECT_DIR)/src/mainMpi.cpp
+
+TARGET=mainApp
 
 # Tool invocations
-das:
+mainApp: libaf libdas
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
 	mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXX_FLAGS) $(EXEDAS_CPP) -o $(BUILD_DIR)/$(TARGET) -ldas
-	cp net.cfg $(BUILD_DIR)/
+	$(CXX) $(CXX_FLAGS) $(MAIN_APP_CPP) -o $(BUILD_DIR)/$(TARGET) -ldas
+	cp $(PROJECT_DIR)/net.cfg $(BUILD_DIR)/
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 #########################################
-
-all: das
-
-# Other Targets
-clean:
-	-$(RM) $(BUILD_DIR)/$(TARGET)
-	-@echo ' '
-
-.PHONY: all clean 
-.SECONDARY:
