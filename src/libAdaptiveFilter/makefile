@@ -5,8 +5,8 @@ LIBAF_DIR=$(PROJECT_DIR)/src/libAdaptiveFilter
 LIBAF_SOURCE_DIR=$(LIBAF_DIR)/source
 LIBAF_INCLUDE_DIR=$(LIBAF_DIR)/include
 
-LIBAF_BUILD_DIR=$(BUILD_DIR)/libAdaptiveFilter
-LIBAF_BUILD_OBJ_DIR=$(LIBAF_BUILD_DIR)/obj
+LIBAF_BUILD_DIR=$(BUILD_DIR)/lib
+LIBAF_BUILD_OBJ_DIR=$(LIBAF_BUILD_DIR)/adaptivefilterObj
 LIBAF_BUILD_INC_DIR=$(LIBAF_BUILD_DIR)/adaptivefilter
 
 
@@ -51,7 +51,7 @@ libaf.a: $(OBJS)
 	@echo 'Invoking: GCC Archiver'
 	ar -r  "libaf.a" $(OBJS)
 	mv libaf.a $(LIBAF_BUILD_DIR)/
-#	-$(RM) $(LIBAF_BUILD_OBJ_DIR)
+	-$(RM) $(LIBAF_BUILD_OBJ_DIR)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -62,14 +62,16 @@ $(LIBAF_BUILD_INC_DIR)/%.h: $(LIBAF_INCLUDE_DIR)/%.h
 
 libaf.header: $(LIBAF_PUBLIC_H)
 
+#################################################
 
+#
 # All Target for adaptive filter lib
 libaf: libaf.dir libaf.a libaf.header
 
 
 # clean Targets
 libaf.clean:
-	-$(RM) $(LIBAF_BUILD_DIR)
+	-$(RM) $(LIBAF_BUILD_OBJ_DIR) $(LIBAF_BUILD_INC_DIR) $(LIBAF_BUILD_DIR)/libaf.a
 	-@echo ' '
 
 	
