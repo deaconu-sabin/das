@@ -1,29 +1,41 @@
 
 
-#include "Logging.hpp"
-#include "network/NetworkSim.h"
-#include <adaptivefilter/LinearFunction.h>
+#include <das/IAlgorithm.hpp>
+#include <das/Network.hpp>
+#include <iostream>
 
 int main(int argc, char** argv)
 {
-    if(NetSim().init())
+    das::Network::Instance().LogMessage("*****************************\n");
+    das::Network::Instance().LogMessage("          MAIN START         \n");
+    das::Network::Instance().LogMessage("*****************************\n");
+
+    if(argc < 2)
     {
-        NetSim().getAlgorithm()->setInitialData();
-
-        for(unsigned time = 0; time < 100; time++)
-        {
-            log.Debug()<<"*****************************\n";
-            log.Debug()<<"      STEP "<< time <<      "\n";
-            log.Debug()<<"*****************************\n";
-
-            NetSim().getAlgorithm()->readInputData();
-            NetSim().getAlgorithm()->processData();
-        }
-        NetSim().getAlgorithm()->writeOutputData();
+        das::Network::Instance().LoadConfiguration("net.cfg");
     }else
     {
-        log.Err()<< "MainApp: Network initialization failed for PID "
-                <<NetSim().getProcessId()<< std::endl;
+        das::Network::Instance().LoadConfiguration(argv[1]);
     }
+    das::IAlgorithm* algorithm =
+                        das::Network::Instance().LoadAlgorithm();
+
+    if(algorithm)
+    {
+        algorithm->setInitialData();
+        while (algorithm->readInputData())
+        {
+            algorithm->processData();
+            algorithm->writeOutputData();
+        }
+    }else
+    {
+        std::cerr << "MainApp: Network initialization failed for PID "
+                  << das::Network::Instance().GetMyId()<< std::endl;
+    }
+
+    das::Network::Instance().LogMessage("*****************************\n");
+    das::Network::Instance().LogMessage("          MAIN END           \n");
+    das::Network::Instance().LogMessage("*****************************\n");
     return 0;
 }
