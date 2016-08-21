@@ -322,8 +322,13 @@ bool Network::LoadConfiguration(const std::string& configFile) const
     path << "./configuration/" << configFile;
 
     net->config.setFileName(path.str());
-    net->config.deserialize();
-    return net->init();
+
+    bool isOk = false;
+    if(net->config.deserialize())
+    {
+        isOk = net->init();
+    }
+    return isOk;
 }
 
 IAlgorithm* Network::LoadAlgorithm() const
@@ -337,7 +342,7 @@ IAlgorithm* Network::LoadAlgorithm() const
     algorithm = NetworkImpl::algorithmLoader.load(nodeAlgorithm.str());
     if(NULL == algorithm)
     {
-        net->log.Err() << "Loading failed of"
+        net->log.Err() << "Loading failed of "
                        << nodeAlgorithm.str()
                        << std::endl;
     }

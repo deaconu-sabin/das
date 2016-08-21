@@ -14,7 +14,7 @@
 #include <sstream>
 #include <fstream>
 
-std::ostream& operator<<(std::ostream& os, std::vector<double> data);
+std::ostream& operator<<(std::ostream& os, const std::vector<double>& data);
 
 double LmsFilter::Adapt(const InputListType&    input,
                         const OutputType&       desiredOutput,
@@ -116,6 +116,14 @@ bool LmsAlgorithm::readInputData()
             m_u[indexData] = data;
             indexData++;
         }
+        else if ( !(charRead == ' '  ||  // is not a whitespace
+                    charRead == '\t' ||  // is not a whitespace
+                    charRead == ','  ||  // is not a separator
+                    charRead == '.'  ||  // is not a separator
+                    charRead == ']') )   // is not a ending of data
+        {
+            return false;
+        }
     }
 
 
@@ -138,12 +146,13 @@ bool LmsAlgorithm::readInputData()
     inputData << "LmsAlgorithm: InputData "<< m_u << " [ "<< m_d << " ]";
     das::Network::Instance().LogMessage(inputData.str());
 
-    return m_datafile.fail();
+    return !m_datafile.fail();
 }
 bool LmsAlgorithm::processData()
 {
     static das::Network& network = das::Network::Instance();
-    static const double nodeCoefficient = 1.0 / network.GetMyNeighbors().size() + 1;
+    static const double nodeCoefficient = 1.0 /
+                                         (network.GetMyNeighbors().size() + 1);
 
     for (int nodeRank = 0;
          nodeRank < network.GetSize();
@@ -201,6 +210,17 @@ bool LmsAlgorithm::writeOutputData()
 
 bool LmsAlgorithm::isFinished()
 {
+    char charRead;
+    while(m_datafile.good())
+    {
+        m_datafile.get(charRead);
+        if(! isspace(charRead))
+        {
+            m_datafile.putback(charRead);
+            break;
+        }
+    }
+
     if(m_datafile.eof())
     {
         das::Network::Instance().LogMessage("LmsAlgorithm is finished");
@@ -228,7 +248,7 @@ bool LmsAlgorithm::isMyNeighbor(int rank)
     return isNeighbor;
 }
 
-std::ostream& operator<<(std::ostream& os, std::vector<double> data)
+std::ostream& operator<<(std::ostream& os, const std::vector<double>& data)
 {
     os << "[ ";
     for (unsigned int i = 0; i < data.size(); ++i)

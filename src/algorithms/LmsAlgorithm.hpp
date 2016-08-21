@@ -26,7 +26,7 @@ class LmsFilter
         static double Adapt(const InputListType&    input,
                             const OutputType&       desiredOutput,
                             WeightLisType&          weights,
-                            double                  gradientStep  = 0.00001);
+                            double                  gradientStep  = 0.0001);
 };
 
 

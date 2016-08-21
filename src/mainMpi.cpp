@@ -8,13 +8,21 @@ int main(int argc, char** argv)
 {
     das::Network& network = das::Network::Instance();
 
+    bool isLoaded = false;
     if(argc < 2)
     {
-        network.LoadConfiguration("Network.cfg");
+        isLoaded = network.LoadConfiguration("Network.cfg");
     }else
     {
-        network.LoadConfiguration(argv[1]);
+        isLoaded = network.LoadConfiguration(argv[1]);
     }
+
+    if(!isLoaded)
+    {
+        std::cerr << "Network could NOT be loaded !\n";
+        return 1;
+    }
+
 
     network.LogMessage("*****************************");
     network.LogMessage("           START             ");
@@ -28,7 +36,7 @@ int main(int argc, char** argv)
         {
             while (algorithm->isFinished() == false)
             {
-                if(algorithm->readInputData())
+                if(!algorithm->readInputData())
                 {
                     network.LogMessage("Algorithm::readInputData() failed!\n");
                     break;
