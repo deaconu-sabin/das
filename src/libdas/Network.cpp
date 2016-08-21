@@ -318,7 +318,10 @@ std::vector<int> Network::GetMyNeighbors() const
 
 bool Network::LoadConfiguration(const std::string& configFile) const
 {
-    net->config.setFileName(configFile);
+    std::stringstream path;
+    path << "./configuration/" << configFile;
+
+    net->config.setFileName(path.str());
     net->config.deserialize();
     return net->init();
 }

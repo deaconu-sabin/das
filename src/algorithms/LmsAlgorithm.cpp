@@ -63,7 +63,8 @@ bool LmsAlgorithm::setInitialData()
     das::Network::Instance().LogMessage("LmsAlgorithm is starting");
 
     std::stringstream ss;
-    ss  << "input"
+    ss  << "./data/"
+        << "input"
         << das::Network::Instance().GetMyId()
         << ".dat";
     m_datafile.open(ss.str().c_str(), std::ifstream::in);
@@ -104,7 +105,9 @@ bool LmsAlgorithm::readInputData()
     while(m_datafile.good() && charRead != ']')
     {
         m_datafile.get(charRead);
-        if((charRead >= '0' && charRead <= '9') )
+        if( (charRead >= '0' && charRead <= '9')    ||  // is a number or
+            (charRead == '-')                       ||  // is a negative or
+            (charRead == '.')                         ) // is a decimal point
         {
             assert(indexData < m_u.size());
 
