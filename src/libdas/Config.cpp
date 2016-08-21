@@ -19,7 +19,7 @@ Config::Config()
     , outputFile(STRING_SZ, '\0')
     , logLevel(Logging::ERROR)
     , topologyType(TOPOLOGY_UNDEF)
-    , nodeEdges()
+    , neighborMap()
     , m_filename(STRING_SZ, '\0')
 {
 
@@ -163,14 +163,20 @@ bool Config::deserialize()
         file.getline(buffer, BUFFER_SIZE);
         for(int node = 0; node < nodesNumber; node++)
         {
-            nodeEdges[node].reserve(nodesNumber);
+            neighborMap[node].clear();
+            neighborMap[node].reserve(nodesNumber);
             file >> tokenLeft;
             for(int neighNode = 0; neighNode < nodesNumber; neighNode++)
             {
-                // TODO add neighbor ID instead of bool
                 int edge;
                 file >> edge;
-                nodeEdges[node].push_back(edge);
+                if(neighNode != node)
+                {
+                    if(edge != 0)
+                    {
+                        neighborMap[node].push_back(neighNode);
+                    }
+                }
             }
             file >> tokenRight;
             if(tokenLeft != '[' || tokenRight != ']')
@@ -181,7 +187,10 @@ bool Config::deserialize()
                 return false;
             }else
             {
-                log.Info() << nodeEdges[node] <<std::endl;
+                log.Info() <<"Neighbors Node "
+                            << node
+                            <<" : "
+                            << neighborMap[node] <<std::endl;
             }
         }
     }

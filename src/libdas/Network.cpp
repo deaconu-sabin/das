@@ -28,14 +28,12 @@ class NetworkImpl
 {
 public:
     MPI::Intracomm intraComm;
-    std::vector<int> neighborsList;
     Config config;
     static AlgorithmLoader algorithmLoader;
     mutable Logging log;
 
     NetworkImpl()
         : intraComm(MPI::COMM_NULL)
-        , neighborsList()
         , config()
         , log("Network")
     {
@@ -197,7 +195,7 @@ public:
         config.setFileName(file);
     }
 
-    void dump() const
+    void dump()
     {
         log.Info() << "== WORLD NETWORK =="
                     << "\n PID : " << getProcessId()
@@ -209,7 +207,7 @@ public:
             log.Info()<< "== My NETWORK =="
                     << "\n RNK : " << getRank()
                     << "\n TPG : " << getTopology()
-                    << "\n NEIGH : " << neighborsList
+                    << "\n NEIGH : " << config.neighborMap[getProcessId()]
                     << "\n NET_SZ : " << getSize()
                     << std::endl;
         }
@@ -231,15 +229,7 @@ public:
             int totalEdges = 0;
             for(unsigned node = 0; node < config.nodesNumber; ++node)
             {
-                for(int neighNode=0;
-                        neighNode < config.nodeEdges[node].size();
-                        ++neighNode)
-                {
-                    if(config.nodeEdges[node][neighNode] == 1)
-                    {
-                        ++totalEdges;
-                    }
-                }
+                totalEdges += config.neighborMap[node].size();
                 index[node] = totalEdges;
             }
 
@@ -247,31 +237,17 @@ public:
             unsigned edgesIdx = 0;
             for(unsigned node = 0; node < config.nodesNumber; ++node)
             {
-                log.Debug() << "CreateTopology() Node : " << node
-                            << "; Neighbors : " << config.nodeEdges[node]
+                log.Info() << "CreateTopology() Node : " << node
+                            << "; Neighbors : " << config.neighborMap[node]
                             << std::endl;
                 for(int neighNode=0;
-                        neighNode < config.nodeEdges[node].size();
+                        neighNode < config.neighborMap[node].size();
                         ++neighNode)
                 {
-                    if(config.nodeEdges[node][neighNode] == 1)
-                    {
-                        log.Debug() << "CreateTopology() Edge created : "
-                                    << node << " <-> " << neighNode
-                                    << std::endl;
-
-                        assert(edgesIdx < totalEdges);
-                        edges[edgesIdx++] = neighNode;
-                        if(node == getProcessId())
-                        {
-                            neighborsList.push_back(neighNode);
-                        }
-                    }
+                    assert(edgesIdx < totalEdges);
+                    edges[edgesIdx++] = config.neighborMap[node][neighNode];
                 }
             }
-            log.Debug() << "CreateTopology() MyNeighborsRank : "
-                        << neighborsList
-                        << std::endl;
 
             intraComm = MPI::COMM_WORLD.Create_graph(config.nodesNumber, index, edges,false);
 
@@ -316,77 +292,51 @@ Network& Network::Instance()
 
 int Network::GetMyId() const
 {
-    if(net)
-    {
-        return net->getProcessId();
-    }
-    return INVALID_VALUE;
-
+    return net->getProcessId();
 }
 
 int Network::GetMyRank() const
 {
-    if(net)
-    {
-        return net->getRank();
-    }
-    return INVALID_VALUE;
-
+    return net->getRank();
 }
 
 int Network::GetTopology() const
 {
-    if(net)
-    {
-        return net->getTopology();
-    }
-    return INVALID_VALUE;
+    return net->getTopology();
+
 }
 
 int Network::GetSize() const
 {
-    if(net)
-    {
-        return net->getSize();
-    }
-    return INVALID_VALUE;
-
+    return net->getSize();
 }
 
 std::vector<int> Network::GetMyNeighbors() const
 {
-    return std::vector<int>();
+    return  net->config.neighborMap[GetMyId()];
 }
 
 bool Network::LoadConfiguration(const std::string& configFile) const
 {
-    if(net)
-    {
-        net->config.setFileName(configFile);
-        net->config.deserialize();
-        return net->init();
-    }else
-    {
-        return false;
-    }
+    net->config.setFileName(configFile);
+    net->config.deserialize();
+    return net->init();
 }
 
 IAlgorithm* Network::LoadAlgorithm() const
 {
     IAlgorithm* algorithm = NULL;
-    if(net)
+
+    std::stringstream nodeAlgorithm;
+    nodeAlgorithm << "algorithms/"              // path
+                 << net->config.nodeAlgorithm   // name
+                 << ".algorithm";               // .extension
+    algorithm = NetworkImpl::algorithmLoader.load(nodeAlgorithm.str());
+    if(NULL == algorithm)
     {
-        std::stringstream nodeAlgorithm;
-        nodeAlgorithm << "algorithms/"              // path
-                     << net->config.nodeAlgorithm   // name
-                     << ".algorithm";               // .extension
-        algorithm = NetworkImpl::algorithmLoader.load(nodeAlgorithm.str());
-        if(NULL == algorithm)
-        {
-            net->log.Err() << "Loading failed of"
-                           << nodeAlgorithm.str()
-                           << std::endl;
-        }
+        net->log.Err() << "Loading failed of"
+                       << nodeAlgorithm.str()
+                       << std::endl;
     }
 
     return algorithm;
@@ -394,56 +344,31 @@ IAlgorithm* Network::LoadAlgorithm() const
 
 bool Network::RecvData(std::vector<double>& receivedData)
 {
-    if(net)
-    {
-        return net->recvData(receivedData);
-    }
-    return false;
+    return net->recvData(receivedData);
 }
 
 bool Network::RecvDataFrom(std::vector<double>& receivedData, int source)
 {
-    if(net)
-    {
-        return net->recvDataFrom(receivedData, source);
-    }
-    return false;
+    return net->recvDataFrom(receivedData, source);
 }
 
 bool Network::SendData(const std::vector<double>& inData)
 {
-    if(net)
-    {
-        return net->sendData(inData);
-    }
-    return false;
+    return net->sendData(inData);
 }
 
 bool Network::SendDataTo(const std::vector<double>& inData, int dest)
 {
-    if(net)
-    {
-        return net->sendDataTo(inData, dest);
-    }
-    return false;
+    return net->sendDataTo(inData, dest);
 }
 
 void Network::LogMessage(const std::string& message)
 {
-    if(net)
-    {
-        net->log.Info() << message << std::endl;
-    }else
-    {
-        std::cout << message << std::endl;
-    }
+    net->log.Info() << message << std::endl;
 }
 
 void Network::ToString() const
 {
-    if(net)
-    {
-        net->dump();
-    }
+    net->dump();
 }
 

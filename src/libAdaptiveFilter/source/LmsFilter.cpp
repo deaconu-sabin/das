@@ -10,34 +10,25 @@ LmsFilter::LmsFilter(int filterOrder):
 {
 }
 
-double LmsFilter::adapt(const ISystemFunction::Input&  input,
-	     	 	 	 	const ISystemFunction::Output& output)
+double LmsFilter::adapt(const InputListType&    input,
+                        const OutputType&       output)
 {
 
 	m_error = output - eval(input);
 	for(unsigned i = 0; i < m_weights.size(); ++i)
 	{
-//		double err = m_error* m_error;
-//		std::cout << "E = " << err
-//				  << "; W = " << m_weights[0]
-//				  << "; Deriv = " << 2*m_error*(-input[i])
-//				  << "\n";
-
 		m_weights[i] = m_weights[i] + m_stepSize * m_error * input[i];
 	}
 
-	//return squared error
 	return m_error*m_error;
 }
 
-double LmsFilter::Adapt(const ISystemFunction::Input&  input,
-	     	 	 	const ISystemFunction::Output& desiredOutput,
-	     	 	 	WeightVector& weights,
-	     	 	 	double gradientStep)
+double LmsFilter::Adapt(const InputListType&    input,
+                        const OutputType&       desiredOutput,
+                        WeightLisType&          weights,
+                        double                  gradientStep)
 {
 	assert(weights.size() == input.size());
-
-	WeightVector oldWeight = weights;
 
 	double actualOutput = 0.0;
 	for(unsigned i = 0; i<weights.size(); ++i)
@@ -53,15 +44,11 @@ double LmsFilter::Adapt(const ISystemFunction::Input&  input,
 
 	//squared error
 	error = error*error;
-//	std::cout << "Lms:Adapt: err = " << error
-//			  << "; oldW = " << oldWeight
-//			  << " => newW " << weights
-//			  << std::endl;
 
 	return error;
 }
 
-double LmsFilter::eval(const ISystemFunction::Input&  input)
+double LmsFilter::eval(const InputListType&  input)
 {
 	assert(m_weights.size() == input.size());
 

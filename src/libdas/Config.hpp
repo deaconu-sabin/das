@@ -37,7 +37,7 @@ class Config
         std::string outputFile;
         int logLevel;
         int topologyType;
-        std::map<int, std::vector<int> > nodeEdges;
+        std::map<int, std::vector<int> > neighborMap;
     private:
         std::string m_filename;
 };
