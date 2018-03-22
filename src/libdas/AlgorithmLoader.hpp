@@ -14,12 +14,10 @@
 namespace das
 {
 
-class AlgorithmLoader
-{
-    public:
-        ~AlgorithmLoader();
+	namespace AlgorithmLoader
+	{
         IAlgorithm* load(const std::string& name);
-};
+	} /* AlgorithmLoader */
 
 } /* namespace das */
 

@@ -27,6 +27,5 @@ class IAlgorithm
 } /* namespace das */
 
 extern "C" das::IAlgorithm* Create();
-extern "C" void Destroy(das::IAlgorithm*);
 
 #endif /* IALGORITHM_HPP_ */

@@ -1,7 +1,7 @@
 
 RM := rm -rf
 
-PROJECT_DIR=/home/sabin/Projects/das
+PROJECT_DIR=.
 PROJECT_SRC_DIR=$(PROJECT_DIR)/src
 PROJECT_INC_DIR=$(PROJECT_DIR)/src/include
 

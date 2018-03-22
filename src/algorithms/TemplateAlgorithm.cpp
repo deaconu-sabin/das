@@ -50,15 +50,7 @@ bool TemplateAlgorithm::isFinished()
 }
 
 
-extern "C"
+das::IAlgorithm* Create()
 {
-    das::IAlgorithm* Create()
-    {
-        return new TemplateAlgorithm();
-    }
-
-    void Destroy(das::IAlgorithm* algorithm)
-    {
-        delete algorithm;
-    }
+    return new TemplateAlgorithm();
 }

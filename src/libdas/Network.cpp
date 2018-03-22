@@ -29,7 +29,6 @@ class NetworkImpl
 public:
     MPI::Intracomm intraComm;
     Config config;
-    static AlgorithmLoader algorithmLoader;
     mutable Logging log;
 
     NetworkImpl()
@@ -269,8 +268,6 @@ public:
 
 };
 
-AlgorithmLoader NetworkImpl::algorithmLoader;
-
 }  /* namespace das */
 
 Network::Network()
@@ -333,18 +330,12 @@ bool Network::LoadConfiguration(const std::string& configFile) const
 
 IAlgorithm* Network::LoadAlgorithm() const
 {
-    IAlgorithm* algorithm = NULL;
-
-    std::stringstream nodeAlgorithm;
-    nodeAlgorithm << "algorithms/"              // path
-                 << net->config.nodeAlgorithm   // name
-                 << ".algorithm";               // .extension
-    algorithm = NetworkImpl::algorithmLoader.load(nodeAlgorithm.str());
+    std::string fileName = "algorithms/"+ net->config.nodeAlgorithm + ".algorithm";
+    IAlgorithm* algorithm = AlgorithmLoader::load(fileName);
+    
     if(NULL == algorithm)
     {
-        net->log.Err() << "Loading failed of "
-                       << nodeAlgorithm.str()
-                       << std::endl;
+        net->log.Err() << "Failed to create algorithm: " << fileName << std::endl;
     }
 
     return algorithm;

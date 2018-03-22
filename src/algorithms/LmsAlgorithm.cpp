@@ -259,15 +259,9 @@ std::ostream& operator<<(std::ostream& os, const std::vector<double>& data)
     return os;
 }
 
-extern "C"
-{
-    das::IAlgorithm* Create()
-    {
-        return new LmsAlgorithm();
-    }
 
-    void Destroy(das::IAlgorithm* algorithm)
-    {
-        delete algorithm;
-    }
+das::IAlgorithm* Create()
+{
+    return new LmsAlgorithm();
 }
+
