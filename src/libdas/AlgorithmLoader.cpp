@@ -6,7 +6,6 @@
  */
 
 #include "AlgorithmLoader.hpp"
-#include "Logging.hpp"
 
 #include <dlfcn.h>
 #include <stdexcept>
@@ -19,8 +18,6 @@ typedef IAlgorithm* (*CreatePtrFcn)(void);
 
 IAlgorithm* AlgorithmLoader::load(const std::string& name)
 {
-    Logging log("Network","AlgorithmLoader");
-
     // load the algorithm library
     void* algoLib = dlopen(name.c_str(), RTLD_LAZY);
     if (!algoLib)

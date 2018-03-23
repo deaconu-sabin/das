@@ -1,6 +1,5 @@
 
 
-
 #include <das/IAlgorithm.hpp>
 #include <das/Network.hpp>
 #include <iostream>
@@ -11,27 +10,17 @@ int main(int argc, char** argv)
     try
     {
         das::Network& network = das::Network::Instance();
-
-        bool isLoaded = false;
-        if(argc < 2)
+        std::string configFile("config/Network.cfg");
+        if(argc > 1)
         {
-            isLoaded = network.LoadConfiguration("Network.cfg");
-        }else
-        {
-            isLoaded = network.LoadConfiguration(argv[1]);
+             network.LoadConfiguration(argv[1]);
         }
-
-        if(!isLoaded)
-        {
-            std::cerr << "Network could NOT be loaded !\n";
-            return 1;
-        }
-
 
         network.LogMessage("*****************************");
         network.LogMessage("           START             ");
         network.LogMessage("*****************************");
 
+        network.LoadConfiguration("config/Network.cfg");
         das::IAlgorithm* algorithm = network.LoadAlgorithm();
 
         if(algorithm)

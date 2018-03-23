@@ -14,33 +14,24 @@
 #include <map>
 
 namespace das{
+    class Config
+    {
+        public:
+            static char TOPOLOGY_UNDEF[];
+            static char TOPOLOGY_INNER[];
+            static char TOPOLOGY_GRAPH[];
+            static char TOPOLOGY_CART[];
+            static char TOPOLOGY_TOR[];
 
-class Config
-{
-    public:
-        enum TopologyType
-        {
-            TOPOLOGY_UNDEF,
-            TOPOLOGY_INNER,
-            TOPOLOGY_GRAPH ,
-            TOPOLOGY_CART,
-            TOPOLOGY_TOR
-        };
+            int nodesNumber;
+            std::string nodeAlgorithm;
+            std::string outputFile;
+            std::string logLevel;
+            std::string topologyType;
+            std::map<int, std::vector<int> > neighborMap;
 
-        Config();
-        void setFileName(const std::string& filename);
-        bool deserialize();
-        bool serialize();
-
-        int nodesNumber;
-        std::string nodeAlgorithm;
-        std::string outputFile;
-        int logLevel;
-        int topologyType;
-        std::map<int, std::vector<int> > neighborMap;
-    private:
-        std::string m_filename;
-};
+            bool loadFromFile(const std::string& filename);
+    };
 
 }
 #endif /* CONFIG_HPP_ */

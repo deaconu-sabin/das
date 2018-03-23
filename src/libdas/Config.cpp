@@ -9,148 +9,74 @@
 #include "Logging.hpp"
 #include <fstream>
 
-using namespace das;
 
-const size_t STRING_SZ = 32;
+char das::Config::TOPOLOGY_UNDEF[] = "undef";
+char das::Config::TOPOLOGY_INNER[] = "inner";
+char das::Config::TOPOLOGY_GRAPH[] = "graph";
+char das::Config::TOPOLOGY_CART[] = "cart";
+char das::Config::TOPOLOGY_TOR[] = "tor";
 
-Config::Config()
-    : nodesNumber(0)
-    , nodeAlgorithm(STRING_SZ, '\0')
-    , outputFile(STRING_SZ, '\0')
-    , logLevel(Logging::ERROR)
-    , topologyType(TOPOLOGY_UNDEF)
-    , neighborMap()
-    , m_filename(STRING_SZ, '\0')
+
+bool das::Config::loadFromFile(const std::string& filename)
 {
-
-}
-void Config::setFileName(const std::string& filename)
-{
-    m_filename = filename;
-}
-
-bool Config::deserialize()
-{
-    Logging log("Network", "Configuration");
-
-    std::ifstream file;
-    file.open(m_filename.c_str(), std::ifstream::in);
+    das::Logging log;
+    std::ifstream file(filename.c_str());
 
     if (!file.good())
     {
-        log.Err() << "Cannot open file "
-                  << m_filename << std::endl;
-        return false;
+        throw std::runtime_error("Cannot open file " + filename);
     }
 
-    const int BUFFER_SIZE = 256;
-    char buffer[BUFFER_SIZE];
-    char tokenLeft;
-    char tokenRight;
     log.Info() << " Read Configuration\n";
 
     ////////////////////////////////////////////
-    /// NODE NUMBER
+    /// NODES
     /////////////////////////////////////////////
-    file.getline(buffer, BUFFER_SIZE);
-    file >> tokenLeft;
+    file.ignore(20, '=');
     file >> nodesNumber;
-    file >> tokenRight;
-    file.getline(buffer, BUFFER_SIZE);
-
-    if(tokenLeft != '[' || tokenRight != ']')
+    if(!file)
     {
-        file.close();
-        log.Err() << "Reading error! (nodes)\n";
-        return false;
-    }else
-    {
-        log.Info() << " nodes = " << nodesNumber
-                << std::endl;
+        throw std::runtime_error("Failed to read nodes number");   
     }
-
 
     ////////////////////////////////////////////
-    /// NODE ALGORITHM
+    ///ALGORITHM
     /////////////////////////////////////////////
-    file.getline(buffer, BUFFER_SIZE);
-    file >> tokenLeft;
+    file.ignore(20, '=');
     file >> nodeAlgorithm;
-    file >> tokenRight;
-    file.getline(buffer, BUFFER_SIZE);
-
-    if(tokenLeft != '[' || tokenRight != ']')
+    if(!file)
     {
-        file.close();
-        log.Err() << "Reading error! (nodeAlgorithm)\n";
-        return false;
-    }else
-    {
-        log.Info() <<" nodeAlgorithm = " << nodeAlgorithm
-                << std::endl;
+        throw std::runtime_error("Failed to read algoritm name");   
     }
-
 
     ////////////////////////////////////////////
     /// OUPUT FILE
     /////////////////////////////////////////////
-    file.getline(buffer, BUFFER_SIZE);
-    file >> tokenLeft;
+    file.ignore(20, '=');
     file >> outputFile;
-    file >> tokenRight;
-    file.getline(buffer, BUFFER_SIZE);
-
-    if(tokenLeft != '[' || tokenRight != ']')
+    if(!file)
     {
-        file.close();
-        log.Err() << "Reading error! (outputFile)\n";
-        return false;
-    }else
-    {
-        log.Info() <<" outputFile = " << outputFile
-                << std::endl;
+        throw std::runtime_error("Failed to read log file name");   
     }
-
 
     ////////////////////////////////////////////
     /// LOG LEVEL
     /////////////////////////////////////////////
-    file.getline(buffer, BUFFER_SIZE);
-    file >> tokenLeft;
+    file.ignore(20, '=');
     file >> logLevel;
-    file >> tokenRight;
-    file.getline(buffer, BUFFER_SIZE);
-
-    if(tokenLeft != '[' || tokenRight != ']')
+    if(!file)
     {
-        file.close();
-        log.Err() << "Reading error! (logLevel)\n";
-        return false;
-    }else
-    {
-        log.Info() <<" logLevel = " << logLevel
-                << std::endl;
+        throw std::runtime_error("Failed to read log level");   
     }
-
 
     ////////////////////////////////////////////
     /// TOPOLOGY TYPE
     /////////////////////////////////////////////
-    file.getline(buffer, BUFFER_SIZE);
-    file >> tokenLeft;
+    file.ignore(20, '=');
     file >> topologyType;
-    file >> tokenRight;
-    file.getline(buffer, BUFFER_SIZE);
-
-    if(tokenLeft != '[' || tokenRight != ']')
+    if(!file)
     {
-        file.close();
-        log.Err() << "Reading error! (topologyType)\n";
-        return false;
-    }else
-    {
-        log.Info() <<" topologyType = " << topologyType
-                << std::endl;
+        throw std::runtime_error("Failed to read topology type");   
     }
 
 
@@ -160,12 +86,10 @@ bool Config::deserialize()
     if(topologyType == Config::TOPOLOGY_GRAPH)
     {
         //read adjacency matrix
-        file.getline(buffer, BUFFER_SIZE);
         for(int node = 0; node < nodesNumber; node++)
         {
             neighborMap[node].clear();
             neighborMap[node].reserve(nodesNumber);
-            file >> tokenLeft;
             for(int neighNode = 0; neighNode < nodesNumber; neighNode++)
             {
                 int edge;
@@ -178,22 +102,10 @@ bool Config::deserialize()
                     }
                 }
             }
-            file >> tokenRight;
-            if(tokenLeft != '[' || tokenRight != ']')
+            if(!file)
             {
-                file.close();
-                log.Err() << "Reading error! Matrix line "
-                        << node << std::endl;
-                return false;
-            }else
-            {
-                log.Info() <<"Neighbors Node "
-                            << node
-                            <<" : "
-                            << neighborMap[node] <<std::endl;
-            }
+                throw std::runtime_error("Failed to read adjacency matrix");            }
         }
     }
-    file.close();
     return true;
 };
